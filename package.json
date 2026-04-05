@@ -1,0 +1,14 @@
+{
+  "name": "yes-or-no",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"cd server && node --watch index.js\" \"cd client && npx vite --host\"",
+    "build": "cd client && npm install && npx vite build",
+    "start": "cd server && node index.js",
+    "postinstall": "cd server && npm install && cd ../client && npm install && npx vite build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
