@@ -8,6 +8,9 @@
     "start": "cd server && node index.js",
     "postinstall": "cd server && npm install && cd ../client && npm install && npx vite build"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "concurrently": "^9.1.0"
   }
