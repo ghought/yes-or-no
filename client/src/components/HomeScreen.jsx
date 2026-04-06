@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useGame } from '../context/GameContext';
 
-export default function HomeScreen() {
+export default function HomeScreen({ onQuickPlay }) {
   const { hostCreate, playerJoin } = useGame();
   const [mode, setMode] = useState(null);
   const [roomCode, setRoomCode] = useState('');
@@ -35,6 +35,9 @@ export default function HomeScreen() {
           </button>
           <button onClick={() => setMode('join')} className="btn-secondary">
             Join Game
+          </button>
+          <button onClick={onQuickPlay} className="btn-ghost" style={{ marginTop: '8px', fontSize: '1rem' }}>
+            Quick Play
           </button>
         </div>
       )}

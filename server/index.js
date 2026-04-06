@@ -123,6 +123,12 @@ app.delete('/api/questions/:id', requireAdmin, (req, res) => {
   res.json({ success: true });
 });
 
+// ---------- Quick Play (public, no auth) ----------
+app.get('/api/quickplay/questions', (req, res) => {
+  const questions = queries.getRandomQuestions(95);
+  res.json({ questions: questions.map(q => ({ id: q.id, text: q.text })) });
+});
+
 // ---------- Socket.IO Game Logic ----------
 // Track which room each socket is in
 const socketRooms = new Map();

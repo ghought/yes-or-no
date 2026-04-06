@@ -6,11 +6,21 @@ import QuestionCard from './components/QuestionCard';
 import VoteButtons from './components/VoteButtons';
 import RevealTally from './components/RevealTally';
 import GameSummary from './components/GameSummary';
+import QuickPlay from './components/QuickPlay';
 import AdminLogin from './components/Admin/AdminLogin';
 import AdminDashboard from './components/Admin/AdminDashboard';
 
 function GameScreen() {
   const { screen, question, questionNumber, totalQuestions, error, clearError } = useGame();
+  const [quickPlay, setQuickPlay] = useState(false);
+
+  if (quickPlay) {
+    return (
+      <div className="flex-1 flex flex-col min-h-dvh">
+        <QuickPlay onExit={() => setQuickPlay(false)} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col min-h-dvh">
@@ -24,7 +34,7 @@ function GameScreen() {
         </div>
       )}
 
-      {screen === 'home' && <HomeScreen />}
+      {screen === 'home' && <HomeScreen onQuickPlay={() => setQuickPlay(true)} />}
       {screen === 'lobby' && <Lobby />}
       {(screen === 'voting' || screen === 'reveal') && (
         <div className="flex-1 flex flex-col items-center" style={{ paddingTop: '48px', paddingBottom: '40px' }}>
