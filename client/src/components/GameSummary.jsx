@@ -6,48 +6,47 @@ export default function GameSummary() {
   if (!summary) return null;
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
-      <div className="card-enter text-center mb-8">
-        <h2 className="text-4xl font-black mb-2">Game Over!</h2>
-        <p className="text-white/40">{summary.totalQuestions} questions answered</p>
+    <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+      <div className="card-enter text-center mb-12">
+        <h2 className="text-5xl font-black mb-3 tracking-tight">Game Over!</h2>
+        <p className="text-white/30 text-base">{summary.totalQuestions} questions answered</p>
       </div>
 
-      <div className="card-enter w-full max-w-sm space-y-4 mb-8">
+      <div className="card-enter card-enter-delay-1 w-full max-w-sm space-y-5 mb-12">
         {summary.mostDivisive && (
-          <div className="bg-white/5 rounded-2xl p-5">
-            <p className="text-xs text-white/40 uppercase tracking-widest mb-2">Most Divisive</p>
-            <p className="text-white font-bold text-lg leading-snug mb-2">
+          <div className="surface p-6">
+            <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-3">Most Divisive</p>
+            <p className="text-white font-bold text-lg leading-snug mb-4">
               {summary.mostDivisive.questionText}
             </p>
-            <p className="text-sm">
-              <span className="text-yes font-bold">{summary.mostDivisive.yesCount} Yes</span>
-              {' / '}
-              <span className="text-no font-bold">{summary.mostDivisive.noCount} No</span>
-            </p>
+            <div className="flex items-center gap-3">
+              <span className="text-yes font-extrabold text-lg">{summary.mostDivisive.yesCount}</span>
+              <span className="text-white/15 text-sm">/</span>
+              <span className="text-no font-extrabold text-lg">{summary.mostDivisive.noCount}</span>
+            </div>
           </div>
         )}
 
         {summary.mostUnanimous && summary.mostUnanimous !== summary.mostDivisive && (
-          <div className="bg-white/5 rounded-2xl p-5">
-            <p className="text-xs text-white/40 uppercase tracking-widest mb-2">Most Unanimous</p>
-            <p className="text-white font-bold text-lg leading-snug mb-2">
+          <div className="surface p-6">
+            <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-3">Most Unanimous</p>
+            <p className="text-white font-bold text-lg leading-snug mb-4">
               {summary.mostUnanimous.questionText}
             </p>
-            <p className="text-sm">
-              <span className="text-yes font-bold">{summary.mostUnanimous.yesCount} Yes</span>
-              {' / '}
-              <span className="text-no font-bold">{summary.mostUnanimous.noCount} No</span>
-            </p>
+            <div className="flex items-center gap-3">
+              <span className="text-yes font-extrabold text-lg">{summary.mostUnanimous.yesCount}</span>
+              <span className="text-white/15 text-sm">/</span>
+              <span className="text-no font-extrabold text-lg">{summary.mostUnanimous.noCount}</span>
+            </div>
           </div>
         )}
       </div>
 
-      <button
-        onClick={reset}
-        className="card-enter w-full max-w-xs py-4 bg-accent text-dark font-bold text-xl rounded-2xl hover:bg-accent-hover transition-colors active:scale-95"
-      >
-        Play Again
-      </button>
+      <div className="card-enter card-enter-delay-2 w-full max-w-xs">
+        <button onClick={reset} className="btn-primary text-xl">
+          Play Again
+        </button>
+      </div>
     </div>
   );
 }

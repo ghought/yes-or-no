@@ -1,13 +1,14 @@
 export default function QuestionCard({ text, number, total }) {
   return (
-    <div className="w-full max-w-sm mx-auto px-4">
-      <div className="text-center mb-4">
-        <span className="text-white/30 text-sm font-medium">
+    <div className="w-full max-w-md mx-auto px-5">
+      <div className="text-center mb-8">
+        <span className="text-white/25 text-xs font-semibold uppercase tracking-[0.2em]">
           Question {number} of {total}
         </span>
       </div>
-      <div className="card-enter bg-white rounded-3xl p-8 shadow-2xl shadow-black/30 min-h-[200px] flex items-center justify-center">
-        <p className="text-dark text-2xl font-bold text-center leading-snug">
+      <div className="card-enter bg-white rounded-[28px] px-10 py-14 shadow-[0_8px_40px_rgba(0,0,0,0.35),0_2px_8px_rgba(0,0,0,0.2)] min-h-[240px] flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+        <p className="text-dark text-[1.65rem] font-extrabold text-center leading-snug tracking-tight">
           {text}
         </p>
       </div>

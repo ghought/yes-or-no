@@ -4,46 +4,53 @@ export default function Lobby() {
   const { roomCode, players, isHost, startGame } = useGame();
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-6">
-      <div className="card-enter text-center mb-8">
-        <p className="text-white/50 text-sm uppercase tracking-widest mb-2">Room Code</p>
-        <h2 className="text-6xl font-black tracking-[0.3em] text-accent">{roomCode}</h2>
-        <p className="text-white/40 text-sm mt-2">Share this code with your friends</p>
+    <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+      {/* Room code */}
+      <div className="card-enter text-center mb-14">
+        <p className="text-white/40 text-xs uppercase tracking-[0.2em] font-semibold mb-4">Room Code</p>
+        <div className="surface inline-block px-10 py-6 mb-5">
+          <h2 className="text-6xl font-black tracking-[0.35em] text-accent leading-none">{roomCode}</h2>
+        </div>
+        <p className="text-white/30 text-sm">Share this code with your friends</p>
       </div>
 
-      <div className="card-enter w-full max-w-xs mb-8">
-        <p className="text-white/50 text-sm uppercase tracking-widest mb-3 text-center">
+      {/* Player list */}
+      <div className="card-enter card-enter-delay-1 w-full max-w-sm mb-12">
+        <p className="text-white/40 text-xs uppercase tracking-[0.2em] font-semibold mb-5 text-center">
           Players ({players.length})
         </p>
-        <div className="bg-white/5 rounded-2xl p-4 space-y-2 max-h-64 overflow-y-auto">
+        <div className="surface p-3 space-y-2 max-h-72 overflow-y-auto">
           {players.length === 0 ? (
-            <p className="text-white/30 text-center py-4 pulse-subtle">Waiting for players...</p>
+            <p className="text-white/25 text-center py-8 pulse-subtle text-sm">Waiting for players...</p>
           ) : (
             players.map((player, i) => (
-              <div key={player.id} className="flex items-center gap-3 px-3 py-2 bg-white/5 rounded-xl">
-                <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold text-sm">
+              <div key={player.id} className="flex items-center gap-4 px-4 py-3.5 bg-white/[0.03] rounded-xl transition-colors hover:bg-white/[0.06]">
+                <div className="w-10 h-10 rounded-full bg-accent/15 flex items-center justify-center text-accent font-bold text-sm shrink-0 border border-accent/20">
                   {player.name[0].toUpperCase()}
                 </div>
-                <span className="text-white font-medium">{player.name}</span>
-                {i === 0 && <span className="ml-auto text-xs text-accent/60 uppercase tracking-wider">Host</span>}
+                <span className="text-white font-semibold text-base">{player.name}</span>
+                {i === 0 && (
+                  <span className="ml-auto text-[10px] text-accent/50 uppercase tracking-[0.15em] font-bold bg-accent/8 px-2.5 py-1 rounded-full">
+                    Host
+                  </span>
+                )}
               </div>
             ))
           )}
         </div>
       </div>
 
+      {/* Start button */}
       {isHost && (
-        <button
-          onClick={startGame}
-          disabled={players.length < 1}
-          className="card-enter w-full max-w-xs py-4 bg-accent text-dark font-bold text-xl rounded-2xl hover:bg-accent-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
-        >
-          Start Game
-        </button>
+        <div className="card-enter card-enter-delay-2 w-full max-w-sm">
+          <button onClick={startGame} disabled={players.length < 1} className="btn-primary text-xl">
+            Start Game
+          </button>
+        </div>
       )}
 
       {!isHost && (
-        <p className="card-enter text-white/40 text-sm pulse-subtle">Waiting for host to start...</p>
+        <p className="card-enter card-enter-delay-2 text-white/30 text-sm pulse-subtle">Waiting for host to start...</p>
       )}
     </div>
   );

@@ -3,10 +3,13 @@
 @theme {
   --color-dark: #1a1a2e;
   --color-dark-lighter: #252547;
+  --color-dark-card: #16162a;
   --color-accent: #e2ff3f;
   --color-accent-hover: #d4f030;
   --color-yes: #4ade80;
+  --color-yes-glow: rgba(74, 222, 128, 0.25);
   --color-no: #f87171;
+  --color-no-glow: rgba(248, 113, 113, 0.25);
 }
 
 * {
@@ -21,6 +24,7 @@ body {
   font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -29,10 +33,11 @@ body {
   flex-direction: column;
 }
 
+/* Card entrance animation */
 @keyframes card-enter {
   0% {
     opacity: 0;
-    transform: translateY(40px) scale(0.95);
+    transform: translateY(30px) scale(0.97);
   }
   100% {
     opacity: 1;
@@ -41,26 +46,151 @@ body {
 }
 
 .card-enter {
-  animation: card-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: card-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Staggered entrance for children */
+.card-enter-delay-1 { animation-delay: 0.08s; opacity: 0; }
+.card-enter-delay-2 { animation-delay: 0.16s; opacity: 0; }
+.card-enter-delay-3 { animation-delay: 0.24s; opacity: 0; }
+
+/* Tally bar fill animation */
 @keyframes bar-fill {
   0% { width: 0%; }
 }
 
 .bar-fill {
-  animation: bar-fill 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: bar-fill 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Count number pop-in */
+@keyframes count-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.count-pop {
+  animation: count-pop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+
+/* Vote button tap feedback */
+.vote-btn {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
 .vote-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.93);
 }
 
+/* Pulse animation for waiting */
 @keyframes pulse-subtle {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  50% { opacity: 0.5; }
 }
 
 .pulse-subtle {
   animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* Shared button base styles */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 18px 24px;
+  background: var(--color-accent);
+  color: var(--color-dark);
+  font-weight: 800;
+  font-size: 1.125rem;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(226, 255, 63, 0.2), inset 0 1px 0 rgba(255,255,255,0.2);
+  letter-spacing: -0.01em;
+}
+.btn-primary:hover {
+  background: var(--color-accent-hover);
+  box-shadow: 0 6px 20px rgba(226, 255, 63, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: scale(0.97) translateY(0);
+  box-shadow: 0 2px 8px rgba(226, 255, 63, 0.15);
+}
+.btn-primary:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 18px 24px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.125rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: -0.01em;
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+.btn-secondary:active {
+  transform: scale(0.97) translateY(0);
+}
+
+.btn-ghost {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 8px 16px;
+  transition: color 0.2s ease;
+}
+.btn-ghost:hover {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Input base */
+.input-field {
+  width: 100%;
+  padding: 18px 24px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  text-align: center;
+  font-size: 1.25rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  outline: none;
+  transition: all 0.2s ease;
+}
+.input-field::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+.input-field:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(226, 255, 63, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Surface card */
+.surface {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
 }

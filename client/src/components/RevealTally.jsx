@@ -9,46 +9,44 @@ export default function RevealTally() {
   const yesPercent = totalVotes > 0 ? (yesCount / totalVotes) * 100 : 50;
 
   return (
-    <div className="card-enter mt-8 w-full max-w-sm mx-auto px-4 space-y-6">
+    <div className="card-enter mt-14 w-full max-w-md mx-auto px-5 space-y-10">
       {/* Counts */}
-      <div className="flex justify-between items-end">
+      <div className="flex justify-between items-center px-4">
         <div className="text-center">
-          <p className="text-5xl font-black text-yes">{yesCount}</p>
-          <p className="text-yes/60 font-bold text-sm uppercase tracking-wider">Yes</p>
+          <p className="count-pop text-6xl font-black text-yes leading-none">{yesCount}</p>
+          <p className="text-yes/50 font-bold text-xs uppercase tracking-[0.15em] mt-3">Yes</p>
         </div>
+        <div className="text-white/15 text-2xl font-light">/</div>
         <div className="text-center">
-          <p className="text-5xl font-black text-no">{noCount}</p>
-          <p className="text-no/60 font-bold text-sm uppercase tracking-wider">No</p>
+          <p className="count-pop text-6xl font-black text-no leading-none">{noCount}</p>
+          <p className="text-no/50 font-bold text-xs uppercase tracking-[0.15em] mt-3">No</p>
         </div>
       </div>
 
       {/* Bar */}
-      <div className="h-4 bg-white/10 rounded-full overflow-hidden flex">
+      <div className="h-5 bg-white/[0.06] rounded-full overflow-hidden flex border border-white/[0.06]">
         <div
-          className="h-full bg-yes rounded-l-full bar-fill"
+          className="h-full bg-gradient-to-r from-yes/80 to-yes rounded-l-full bar-fill"
           style={{ width: `${yesPercent}%` }}
         />
         <div
-          className="h-full bg-no rounded-r-full bar-fill"
+          className="h-full bg-gradient-to-r from-no to-no/80 rounded-r-full bar-fill"
           style={{ width: `${100 - yesPercent}%` }}
         />
       </div>
 
       {/* Discussion prompt */}
-      <p className="text-center text-white/40 text-sm">Discuss!</p>
+      <p className="text-center text-white/25 text-sm font-medium tracking-wide">Talk it out.</p>
 
       {/* Host controls */}
       {isHost && (
-        <div className="flex gap-3">
-          <button
-            onClick={nextQuestion}
-            className="flex-1 py-4 bg-accent text-dark font-bold text-lg rounded-2xl hover:bg-accent-hover transition-colors active:scale-95"
-          >
+        <div className="flex gap-4 pt-2">
+          <button onClick={nextQuestion} className="btn-primary flex-1">
             Next Question
           </button>
           <button
             onClick={endGame}
-            className="py-4 px-5 bg-white/10 text-white/60 font-medium rounded-2xl hover:bg-white/20 transition-colors active:scale-95"
+            className="px-6 py-[18px] bg-white/[0.06] text-white/40 font-semibold rounded-2xl border border-white/[0.06] hover:bg-white/[0.1] hover:text-white/60 transition-all active:scale-97"
           >
             End
           </button>
