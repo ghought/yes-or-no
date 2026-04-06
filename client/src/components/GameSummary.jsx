@@ -6,13 +6,13 @@ export default function GameSummary() {
   if (!summary) return null;
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
-      <div className="card-enter text-center mb-12">
-        <h2 className="text-5xl font-black mb-3 tracking-tight">Game Over!</h2>
+    <div className="flex-1 flex flex-col items-center justify-center px-6 py-14">
+      <div className="card-enter text-center mb-14">
+        <h2 className="text-5xl font-black mb-4 tracking-tight">Game Over!</h2>
         <p className="text-white/30 text-base">{summary.totalQuestions} questions answered</p>
       </div>
 
-      <div className="card-enter card-enter-delay-1 w-full max-w-sm space-y-5 mb-12">
+      <div className="card-enter card-enter-delay-1 w-full max-w-sm space-y-6 mb-14">
         {summary.mostDivisive && (
           <div className="surface p-6">
             <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-3">Most Divisive</p>

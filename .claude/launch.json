@@ -1,0 +1,16 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "client",
+      "runtimeExecutable": "/usr/local/bin/node",
+      "runtimeArgs": ["server/index.js"],
+      "port": 3001,
+      "env": {
+        "NODE_ENV": "production",
+        "PORT": "3001",
+        "ADMIN_PASSWORD": "changeme"
+      }
+    }
+  ]
+}

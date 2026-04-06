@@ -27,7 +27,7 @@ function GameScreen() {
       {screen === 'home' && <HomeScreen />}
       {screen === 'lobby' && <Lobby />}
       {(screen === 'voting' || screen === 'reveal') && (
-        <div className="flex-1 flex flex-col items-center justify-center py-8">
+        <div className="flex-1 flex flex-col items-center justify-center px-5 py-12">
           <QuestionCard text={question} number={questionNumber} total={totalQuestions} />
           {screen === 'voting' && <VoteButtons />}
           {screen === 'reveal' && <RevealTally />}

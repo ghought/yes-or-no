@@ -9,7 +9,7 @@ export default function RevealTally() {
   const yesPercent = totalVotes > 0 ? (yesCount / totalVotes) * 100 : 50;
 
   return (
-    <div className="card-enter mt-14 w-full max-w-md mx-auto px-5 space-y-10">
+    <div className="card-enter mt-10 w-full max-w-md mx-auto space-y-8">
       {/* Counts */}
       <div className="flex justify-between items-center px-4">
         <div className="text-center">
@@ -40,13 +40,13 @@ export default function RevealTally() {
 
       {/* Host controls */}
       {isHost && (
-        <div className="flex gap-4 pt-2">
+        <div className="flex gap-4 pt-4">
           <button onClick={nextQuestion} className="btn-primary flex-1">
             Next Question
           </button>
           <button
             onClick={endGame}
-            className="px-6 py-[18px] bg-white/[0.06] text-white/40 font-semibold rounded-2xl border border-white/[0.06] hover:bg-white/[0.1] hover:text-white/60 transition-all active:scale-97"
+            className="px-8 py-[18px] bg-white/[0.06] text-white/40 font-semibold rounded-2xl border border-white/[0.06] hover:bg-white/[0.1] hover:text-white/60 transition-all active:scale-97 shrink-0"
           >
             End
           </button>

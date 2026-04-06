@@ -1,6 +1,6 @@
 export default function QuestionCard({ text, number, total }) {
   return (
-    <div className="w-full max-w-md mx-auto px-5">
+    <div className="w-full max-w-md mx-auto">
       <div className="text-center mb-8">
         <span className="text-white/25 text-xs font-semibold uppercase tracking-[0.2em]">
           Question {number} of {total}

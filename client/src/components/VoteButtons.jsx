@@ -23,7 +23,7 @@ export default function VoteButtons() {
   }
 
   return (
-    <div className="mt-14 space-y-8 w-full max-w-md mx-auto px-5">
+    <div className="mt-10 space-y-8 w-full max-w-md mx-auto">
       <div className="flex gap-5">
         <button
           onClick={() => vote('yes')}
