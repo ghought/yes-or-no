@@ -18,7 +18,7 @@ export default function HomeScreen({ onQuickPlay }) {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-6 gap-10">
+    <div className="flex-1 flex flex-col items-center justify-center px-6 gap-10 relative" style={{ paddingBottom: '80px' }}>
       {/* Logo */}
       <div className="card-enter text-center">
         <h1 className="text-[4.5rem] sm:text-8xl font-black tracking-tight mb-6 leading-[0.9]">
@@ -91,6 +91,22 @@ export default function HomeScreen({ onQuickPlay }) {
           </button>
         </form>
       )}
+      {/* Credits */}
+      <footer className="absolute bottom-6 left-0 right-0 text-center" style={{ padding: '0 24px' }}>
+        <div className="border-t border-white/10" style={{ paddingTop: '16px' }}>
+          <p className="text-white/30 text-sm">
+            Created by{' '}
+            <a href="https://www.alexcrawfordphoto.com/" target="_blank" rel="noopener noreferrer" className="text-white/50 underline decoration-white/20 underline-offset-2 hover:text-white/70 transition-colors">
+              Alex
+            </a>
+            {' | '}
+            Developed by{' '}
+            <a href="https://garretthoughton.com/" target="_blank" rel="noopener noreferrer" className="text-white/50 underline decoration-white/20 underline-offset-2 hover:text-white/70 transition-colors">
+              Garrett
+            </a>
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
