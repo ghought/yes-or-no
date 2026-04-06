@@ -5,7 +5,7 @@ export default function VoteButtons() {
 
   if (hasVoted) {
     return (
-      <div className="text-center mt-14 space-y-6">
+      <div className="text-center space-y-6" style={{ marginTop: '48px', padding: '0 24px' }}>
         <div className="inline-flex items-center gap-2.5 px-8 py-4 surface border-accent/20">
           <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
           <span className="text-accent font-bold text-base">Vote locked in</span>
@@ -23,8 +23,8 @@ export default function VoteButtons() {
   }
 
   return (
-    <div className="mt-10 space-y-8 w-full max-w-md mx-auto">
-      <div className="flex gap-5">
+    <div className="w-full max-w-md mx-auto" style={{ marginTop: '48px', padding: '0 24px' }}>
+      <div className="flex gap-5" style={{ marginBottom: '32px' }}>
         <button
           onClick={() => vote('yes')}
           className="vote-btn flex-1 py-9 bg-yes/10 hover:bg-yes/20 border border-yes/25 hover:border-yes/40 rounded-[20px] flex flex-col items-center gap-3 shadow-[0_4px_20px_var(--color-yes-glow)] hover:shadow-[0_8px_30px_var(--color-yes-glow)]"
@@ -41,7 +41,7 @@ export default function VoteButtons() {
         </button>
       </div>
 
-      <p className="text-center text-white/25 text-sm font-medium">
+      <p className="text-center text-white/25 text-sm font-medium" style={{ marginBottom: '16px' }}>
         {votedCount} of {totalPlayers} voted
       </p>
 

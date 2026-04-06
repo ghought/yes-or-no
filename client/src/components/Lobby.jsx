@@ -4,9 +4,9 @@ export default function Lobby() {
   const { roomCode, players, isHost, startGame } = useGame();
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+    <div className="flex-1 flex flex-col items-center justify-center" style={{ padding: '48px 24px' }}>
       {/* Room code */}
-      <div className="card-enter text-center mb-14">
+      <div className="card-enter text-center" style={{ marginBottom: '56px' }}>
         <p className="text-white/40 text-xs uppercase tracking-[0.2em] font-semibold mb-4">Room Code</p>
         <div className="surface inline-block px-10 py-6 mb-5">
           <h2 className="text-6xl font-black tracking-[0.35em] text-accent leading-none">{roomCode}</h2>
@@ -15,7 +15,7 @@ export default function Lobby() {
       </div>
 
       {/* Player list */}
-      <div className="card-enter card-enter-delay-1 w-full max-w-sm mb-12">
+      <div className="card-enter card-enter-delay-1 w-full max-w-sm" style={{ marginBottom: '48px' }}>
         <p className="text-white/40 text-xs uppercase tracking-[0.2em] font-semibold mb-5 text-center">
           Players ({players.length})
         </p>

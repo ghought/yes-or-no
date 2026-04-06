@@ -6,15 +6,15 @@ export default function GameSummary() {
   if (!summary) return null;
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-6 py-14">
-      <div className="card-enter text-center mb-14">
-        <h2 className="text-5xl font-black mb-4 tracking-tight">Game Over!</h2>
+    <div className="flex-1 flex flex-col items-center justify-center" style={{ padding: '56px 24px' }}>
+      <div className="card-enter text-center" style={{ marginBottom: '56px' }}>
+        <h2 className="text-5xl font-black tracking-tight" style={{ marginBottom: '16px' }}>Game Over!</h2>
         <p className="text-white/30 text-base">{summary.totalQuestions} questions answered</p>
       </div>
 
-      <div className="card-enter card-enter-delay-1 w-full max-w-sm space-y-6 mb-14">
+      <div className="card-enter card-enter-delay-1 w-full max-w-sm" style={{ marginBottom: '56px' }}>
         {summary.mostDivisive && (
-          <div className="surface p-6">
+          <div className="surface p-6" style={{ marginBottom: '24px' }}>
             <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-3">Most Divisive</p>
             <p className="text-white font-bold text-lg leading-snug mb-4">
               {summary.mostDivisive.questionText}
