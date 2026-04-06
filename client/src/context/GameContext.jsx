@@ -135,6 +135,10 @@ export function GameProvider({ children }) {
     socket.emit('host:forceReveal');
   }, [socket]);
 
+  const skipQuestion = useCallback(() => {
+    socket.emit('host:skipQuestion');
+  }, [socket]);
+
   const nextQuestion = useCallback(() => {
     socket.emit('host:nextQuestion');
   }, [socket]);
@@ -159,6 +163,7 @@ export function GameProvider({ children }) {
       startGame,
       vote,
       forceReveal,
+      skipQuestion,
       nextQuestion,
       endGame,
       reset,

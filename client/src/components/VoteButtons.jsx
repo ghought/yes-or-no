@@ -1,7 +1,7 @@
 import { useGame } from '../context/GameContext';
 
 export default function VoteButtons() {
-  const { vote, hasVoted, votedCount, totalPlayers, isHost, forceReveal } = useGame();
+  const { vote, hasVoted, votedCount, totalPlayers, isHost, forceReveal, skipQuestion } = useGame();
 
   if (hasVoted) {
     return (
@@ -16,6 +16,11 @@ export default function VoteButtons() {
         {isHost && votedCount < totalPlayers && (
           <button onClick={forceReveal} className="btn-ghost mt-2">
             Reveal Early
+          </button>
+        )}
+        {isHost && (
+          <button onClick={skipQuestion} className="btn-ghost">
+            Skip Question
           </button>
         )}
       </div>
@@ -45,13 +50,18 @@ export default function VoteButtons() {
         {votedCount} of {totalPlayers} voted
       </p>
 
-      {isHost && votedCount > 0 && (
-        <div className="text-center">
+      <div className="text-center" style={{ marginTop: '16px' }}>
+        {isHost && votedCount > 0 && (
           <button onClick={forceReveal} className="btn-ghost">
             Reveal Early
           </button>
-        </div>
-      )}
+        )}
+        {isHost && (
+          <button onClick={skipQuestion} className="btn-ghost">
+            Skip Question
+          </button>
+        )}
+      </div>
     </div>
   );
 }

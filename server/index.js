@@ -260,6 +260,36 @@ io.on('connection', (socket) => {
     io.to(roomCode).emit('game:reveal', tally);
   });
 
+  socket.on('host:skipQuestion', () => {
+    const roomCode = socketRooms.get(socket.id);
+    const room = rooms.getRoom(roomCode);
+    if (!room || room.hostId !== socket.id) return;
+    if (room.state !== 'voting') return;
+
+    // Clear votes and advance to next question
+    room.votes.clear();
+    const updated = rooms.nextQuestion(roomCode);
+    if (!updated) return;
+
+    if (updated.state === 'ended') {
+      const summary = rooms.getGameSummary(roomCode);
+      io.to(roomCode).emit('game:ended', summary);
+      return;
+    }
+
+    const question = updated.questions[updated.currentQuestionIndex];
+    io.to(roomCode).emit('game:question', {
+      questionText: question.text,
+      questionNumber: updated.currentQuestionIndex + 1,
+      totalQuestions: updated.questions.length,
+    });
+    const connectedCount = rooms.getConnectedPlayers(roomCode).length;
+    io.to(roomCode).emit('game:voteProgress', {
+      votedCount: 0,
+      totalPlayers: connectedCount,
+    });
+  });
+
   socket.on('host:nextQuestion', () => {
     const roomCode = socketRooms.get(socket.id);
     const room = rooms.getRoom(roomCode);
