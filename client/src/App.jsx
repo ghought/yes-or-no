@@ -7,17 +7,27 @@ import VoteButtons from './components/VoteButtons';
 import RevealTally from './components/RevealTally';
 import GameSummary from './components/GameSummary';
 import QuickPlay from './components/QuickPlay';
+import SubmitQuestion from './components/SubmitQuestion';
 import AdminLogin from './components/Admin/AdminLogin';
 import AdminDashboard from './components/Admin/AdminDashboard';
 
 function GameScreen() {
   const { screen, question, questionNumber, totalQuestions, error, clearError } = useGame();
   const [quickPlay, setQuickPlay] = useState(false);
+  const [submitMode, setSubmitMode] = useState(false);
 
   if (quickPlay) {
     return (
       <div className="flex-1 flex flex-col min-h-dvh">
         <QuickPlay onExit={() => setQuickPlay(false)} />
+      </div>
+    );
+  }
+
+  if (submitMode) {
+    return (
+      <div className="flex-1 flex flex-col min-h-dvh">
+        <SubmitQuestion onBack={() => setSubmitMode(false)} />
       </div>
     );
   }
@@ -34,7 +44,7 @@ function GameScreen() {
         </div>
       )}
 
-      {screen === 'home' && <HomeScreen onQuickPlay={() => setQuickPlay(true)} />}
+      {screen === 'home' && <HomeScreen onQuickPlay={() => setQuickPlay(true)} onSubmitQuestion={() => setSubmitMode(true)} />}
       {screen === 'lobby' && <Lobby />}
       {(screen === 'voting' || screen === 'reveal') && (
         <div className="flex-1 flex flex-col items-center" style={{ paddingTop: '48px', paddingBottom: '40px' }}>

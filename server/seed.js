@@ -100,11 +100,11 @@ const seedQuestions = [
 
 const insertMany = db.transaction((questions) => {
   for (const text of questions) {
-    queries.addQuestion.run(text, null, 'seed');
+    queries.addQuestion.run(text, null, 'seed', 'published');
   }
 });
 
 insertMany(seedQuestions);
 
-const count = queries.getQuestionCount.get().count;
+const count = queries.getPublishedCount.get().count;
 console.log(`Database seeded. Total questions: ${count}`);

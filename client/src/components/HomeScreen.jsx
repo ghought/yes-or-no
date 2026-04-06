@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useGame } from '../context/GameContext';
 
-export default function HomeScreen({ onQuickPlay }) {
+export default function HomeScreen({ onQuickPlay, onSubmitQuestion }) {
   const { hostCreate, playerJoin } = useGame();
   const [mode, setMode] = useState(null);
   const [roomCode, setRoomCode] = useState('');
@@ -36,9 +36,15 @@ export default function HomeScreen({ onQuickPlay }) {
           <button onClick={() => setMode('join')} className="btn-secondary">
             Join Game
           </button>
-          <button onClick={onQuickPlay} className="btn-ghost" style={{ marginTop: '8px', fontSize: '1rem' }}>
-            Quick Play
-          </button>
+          <div className="flex gap-3 justify-center" style={{ marginTop: '8px' }}>
+            <button onClick={onQuickPlay} className="btn-ghost" style={{ fontSize: '1rem' }}>
+              Quick Play
+            </button>
+            <span className="text-white/15 self-center">|</span>
+            <button onClick={onSubmitQuestion} className="btn-ghost" style={{ fontSize: '1rem' }}>
+              Submit Question
+            </button>
+          </div>
         </div>
       )}
 

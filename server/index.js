@@ -7,6 +7,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const { queries } = require('./db');
 const rooms = require('./rooms');
 
@@ -72,18 +73,79 @@ app.get('/api/admin/check', requireAdmin, (req, res) => {
   res.json({ authenticated: true });
 });
 
+// ---------- Email Helper ----------
+function getMailTransporter() {
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!user || !pass) return null;
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: false,
+    auth: { user, pass },
+  });
+}
+
+async function sendSubmissionEmail(questionText, submitterName) {
+  const transporter = getMailTransporter();
+  if (!transporter) {
+    console.log('SMTP not configured — skipping email notification');
+    return;
+  }
+  const adminUrl = process.env.APP_URL
+    ? `${process.env.APP_URL}/admin`
+    : 'https://yes-or-no-production.up.railway.app/admin';
+
+  try {
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: process.env.NOTIFY_EMAIL || 'ALEX@ALEXCRAWFORDPHOTO.COM',
+      subject: `YES OR NO: New question submitted by ${submitterName}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+          <h2 style="color: #1a1a2e;">New Question Submission</h2>
+          <p style="font-size: 14px; color: #666;">Submitted by <strong>${submitterName}</strong></p>
+          <div style="background: #f5f5f5; border-radius: 12px; padding: 24px; margin: 16px 0;">
+            <p style="font-size: 18px; font-weight: bold; color: #1a1a2e; margin: 0;">${questionText}</p>
+          </div>
+          <a href="${adminUrl}" style="display: inline-block; background: #e2ff3f; color: #1a1a2e; font-weight: bold; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin-top: 8px;">
+            Review in Admin Panel
+          </a>
+        </div>
+      `,
+    });
+    console.log('Submission notification email sent');
+  } catch (err) {
+    console.error('Failed to send email:', err.message);
+  }
+}
+
 // ---------- Admin Question CRUD ----------
 app.get('/api/questions', requireAdmin, (req, res) => {
-  const questions = queries.getAllQuestions.all();
-  const count = queries.getQuestionCount.get().count;
+  const status = req.query.status;
+  if (status) {
+    const questions = queries.getByStatus(status);
+    const count = questions.length;
+    return res.json({ questions, count });
+  }
+  const questions = queries.getAllPublished.all();
+  const count = queries.getPublishedCount.get().count;
   res.json({ questions, count });
+});
+
+app.get('/api/questions/counts', requireAdmin, (req, res) => {
+  res.json({
+    published: queries.getCountByStatus('published'),
+    draft: queries.getCountByStatus('draft'),
+    rejected: queries.getCountByStatus('rejected'),
+  });
 });
 
 app.post('/api/questions', requireAdmin, (req, res) => {
   const { text, category } = req.body;
   if (!text?.trim()) return res.status(400).json({ error: 'Question text is required' });
   try {
-    const result = queries.addQuestion.run(text.trim(), category || null, 'admin');
+    const result = queries.addQuestion.run(text.trim(), category || null, 'admin', 'published');
     if (result.changes === 0) return res.status(409).json({ error: 'Question already exists' });
     const question = queries.getQuestionById.get(result.lastInsertRowid);
     res.status(201).json(question);
@@ -100,11 +162,11 @@ app.post('/api/questions/bulk', requireAdmin, (req, res) => {
   const insert = queries.addQuestion;
   for (const text of questions) {
     if (text?.trim()) {
-      const result = insert.run(text.trim(), null, 'admin');
+      const result = insert.run(text.trim(), null, 'admin', 'published');
       if (result.changes > 0) added++;
     }
   }
-  const count = queries.getQuestionCount.get().count;
+  const count = queries.getPublishedCount.get().count;
   res.json({ added, total: count });
 });
 
@@ -117,10 +179,43 @@ app.put('/api/questions/:id', requireAdmin, (req, res) => {
   res.json(question);
 });
 
+app.post('/api/questions/:id/approve', requireAdmin, (req, res) => {
+  const question = queries.getQuestionById.get(req.params.id);
+  if (!question) return res.status(404).json({ error: 'Question not found' });
+  queries.updateStatus.run('published', req.params.id);
+  res.json({ success: true });
+});
+
+app.post('/api/questions/:id/reject', requireAdmin, (req, res) => {
+  const question = queries.getQuestionById.get(req.params.id);
+  if (!question) return res.status(404).json({ error: 'Question not found' });
+  queries.updateStatus.run('rejected', req.params.id);
+  res.json({ success: true });
+});
+
 app.delete('/api/questions/:id', requireAdmin, (req, res) => {
   const result = queries.deleteQuestion.run(req.params.id);
   if (result.changes === 0) return res.status(404).json({ error: 'Question not found' });
   res.json({ success: true });
+});
+
+// ---------- Public Question Submission ----------
+app.post('/api/submit', (req, res) => {
+  const { name, question } = req.body;
+  if (!name?.trim() || !question?.trim()) {
+    return res.status(400).json({ error: 'Name and question are required' });
+  }
+  try {
+    const result = queries.submitQuestion.run(question.trim(), name.trim());
+    if (result.changes === 0) {
+      return res.status(409).json({ error: 'This question has already been submitted' });
+    }
+    // Send email notification (non-blocking)
+    sendSubmissionEmail(question.trim(), name.trim());
+    res.status(201).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ---------- Quick Play (public, no auth) ----------
