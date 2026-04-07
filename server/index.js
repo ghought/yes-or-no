@@ -84,10 +84,13 @@ function getMailTransporter() {
   // Strip spaces from app passwords (Gmail shows them as "xxxx xxxx xxxx xxxx")
   const cleanPass = pass.replace(/\s/g, '');
   console.log(`SMTP configured: ${user} via ${process.env.SMTP_HOST || 'smtp.gmail.com'}`);
+  const dns = require('dns');
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || '587'),
     secure: false,
+    dnsOptions: { family: 4 },
+    family: 4,
     auth: { user, pass: cleanPass },
   });
 }
