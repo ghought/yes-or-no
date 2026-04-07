@@ -115,12 +115,22 @@ export default function DeckManager({ onLogout }) {
                 <span className="text-white/25 text-xs font-medium shrink-0">
                   {d.questionCount} questions
                 </span>
+                {/* Desktop: hover to reveal */}
                 <button
                   onClick={() => deleteDeck(d.id)}
-                  className="text-no/30 hover:text-no opacity-0 group-hover:opacity-100 transition-all"
-                  style={{ fontSize: '13px', padding: '6px 10px' }}
+                  className="hidden sm:block text-no/30 hover:text-no opacity-0 group-hover:opacity-100 transition-all"
+                  style={{ fontSize: '12px', padding: '6px 10px' }}
+                  title="Delete"
                 >
-                  ✕
+                  🗑
+                </button>
+                {/* Mobile: always visible, subtle */}
+                <button
+                  onClick={() => deleteDeck(d.id)}
+                  className="sm:hidden text-no/40 active:text-no transition-colors"
+                  style={{ fontSize: '12px', padding: '6px 10px' }}
+                >
+                  🗑
                 </button>
               </div>
             </div>

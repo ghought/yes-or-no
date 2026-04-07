@@ -4,6 +4,7 @@ export default function QuestionEditor({ question, tab, allDecks, onUpdate, onDe
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(question.text);
   const [showDecks, setShowDecks] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const questionDeckIds = (question.decks || []).map(d => d.id);
 
@@ -51,10 +52,12 @@ export default function QuestionEditor({ question, tab, allDecks, onUpdate, onDe
             autoFocus
           />
         ) : (
-          <div className="flex-1 min-w-0">
+          <div
+            className="flex-1 min-w-0 cursor-pointer"
+            onClick={() => setExpanded(!expanded)}
+          >
             <p
-              className="text-white/80 cursor-pointer hover:text-white transition-colors"
-              onClick={() => setEditing(true)}
+              className="text-white/80 hover:text-white transition-colors"
               style={{ fontSize: '0.95rem', lineHeight: '1.5' }}
             >
               {question.text}
@@ -81,15 +84,15 @@ export default function QuestionEditor({ question, tab, allDecks, onUpdate, onDe
           </div>
         )}
 
-        {/* Actions */}
-        <div className="flex items-center shrink-0" style={{ gap: '8px' }}>
-          {/* Approve/Reject for drafts */}
+        {/* Desktop actions — visible on hover */}
+        <div className="hidden sm:flex items-center shrink-0" style={{ gap: '8px' }}>
           {tab === 'draft' && (
             <>
               <button
                 onClick={() => onApprove(question.id)}
                 className="text-yes/70 hover:text-yes font-bold transition-colors"
                 style={{ fontSize: '13px', padding: '6px 10px' }}
+                title="Approve"
               >
                 ✓
               </button>
@@ -97,24 +100,24 @@ export default function QuestionEditor({ question, tab, allDecks, onUpdate, onDe
                 onClick={() => onReject(question.id)}
                 className="text-no/70 hover:text-no font-bold transition-colors"
                 style={{ fontSize: '13px', padding: '6px 10px' }}
+                title="Reject"
               >
-                ✕
+                ↓
               </button>
             </>
           )}
 
-          {/* Re-approve for rejected */}
           {tab === 'rejected' && (
             <button
               onClick={() => onApprove(question.id)}
               className="text-yes/70 hover:text-yes font-bold transition-colors"
               style={{ fontSize: '13px', padding: '6px 10px' }}
+              title="Approve"
             >
               ✓
             </button>
           )}
 
-          {/* Deck assignment toggle (published tab) */}
           {tab === 'published' && allDecks && allDecks.length > 0 && (
             <button
               onClick={() => setShowDecks(!showDecks)}
@@ -125,16 +128,85 @@ export default function QuestionEditor({ question, tab, allDecks, onUpdate, onDe
             </button>
           )}
 
-          {/* Delete */}
           <button
             onClick={() => onDelete(question.id)}
             className="text-no/30 hover:text-no opacity-0 group-hover:opacity-100 transition-all"
-            style={{ fontSize: '13px', padding: '6px 10px' }}
+            style={{ fontSize: '12px', padding: '6px 10px' }}
+            title="Delete"
           >
-            ✕
+            🗑
           </button>
         </div>
+
+        {/* Mobile: expand chevron */}
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="sm:hidden text-white/25 shrink-0 transition-transform"
+          style={{ fontSize: '14px', padding: '4px 6px', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+        >
+          ▾
+        </button>
       </div>
+
+      {/* Mobile expanded actions */}
+      {expanded && (
+        <div className="sm:hidden flex flex-wrap items-center" style={{ gap: '8px', marginTop: '12px', marginLeft: '32px' }}>
+          <button
+            onClick={() => setEditing(true)}
+            style={{ fontSize: '12px', padding: '8px 16px', borderRadius: '12px' }}
+            className="bg-white/8 text-white/60 font-semibold transition-colors active:bg-white/15"
+          >
+            Edit
+          </button>
+
+          {tab === 'draft' && (
+            <>
+              <button
+                onClick={() => onApprove(question.id)}
+                style={{ fontSize: '12px', padding: '8px 16px', borderRadius: '12px' }}
+                className="bg-yes/15 text-yes/80 font-semibold transition-colors active:bg-yes/25"
+              >
+                Approve
+              </button>
+              <button
+                onClick={() => onReject(question.id)}
+                style={{ fontSize: '12px', padding: '8px 16px', borderRadius: '12px' }}
+                className="bg-no/15 text-no/80 font-semibold transition-colors active:bg-no/25"
+              >
+                Reject
+              </button>
+            </>
+          )}
+
+          {tab === 'rejected' && (
+            <button
+              onClick={() => onApprove(question.id)}
+              style={{ fontSize: '12px', padding: '8px 16px', borderRadius: '12px' }}
+              className="bg-yes/15 text-yes/80 font-semibold transition-colors active:bg-yes/25"
+            >
+              Approve
+            </button>
+          )}
+
+          {tab === 'published' && allDecks && allDecks.length > 0 && (
+            <button
+              onClick={() => setShowDecks(!showDecks)}
+              style={{ fontSize: '12px', padding: '8px 16px', borderRadius: '12px' }}
+              className={`font-semibold transition-colors ${showDecks ? 'bg-accent/15 text-accent' : 'bg-white/8 text-white/60 active:bg-white/15'}`}
+            >
+              Decks
+            </button>
+          )}
+
+          <button
+            onClick={() => onDelete(question.id)}
+            style={{ fontSize: '12px', padding: '8px 16px', borderRadius: '12px' }}
+            className="bg-no/10 text-no/50 font-semibold transition-colors active:bg-no/20"
+          >
+            Delete
+          </button>
+        </div>
+      )}
 
       {/* Deck assignment pills */}
       {showDecks && tab === 'published' && (
