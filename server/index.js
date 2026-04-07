@@ -74,6 +74,10 @@ app.get('/api/admin/check', requireAdmin, (req, res) => {
 });
 
 // ---------- Email Helper ----------
+// Force Node.js DNS to resolve IPv4 first (Railway doesn't support IPv6)
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
+
 function getMailTransporter() {
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
@@ -84,14 +88,14 @@ function getMailTransporter() {
   // Strip spaces from app passwords (Gmail shows them as "xxxx xxxx xxxx xxxx")
   const cleanPass = pass.replace(/\s/g, '');
   console.log(`SMTP configured: ${user} via ${process.env.SMTP_HOST || 'smtp.gmail.com'}`);
-  const dns = require('dns');
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || '587'),
     secure: false,
-    dnsOptions: { family: 4 },
-    family: 4,
     auth: { user, pass: cleanPass },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   });
 }
 
@@ -105,10 +109,12 @@ async function sendSubmissionEmail(questionText, submitterName) {
     ? `${process.env.APP_URL}/admin`
     : 'https://yes-or-no-production.up.railway.app/admin';
 
+  const recipient = process.env.NOTIFY_EMAIL || 'ALEX@ALEXCRAWFORDPHOTO.COM';
+  console.log(`Sending email to ${recipient}...`);
   try {
     await transporter.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
-      to: process.env.NOTIFY_EMAIL || 'ALEX@ALEXCRAWFORDPHOTO.COM',
+      to: recipient,
       subject: `YES OR NO: New question submitted by ${submitterName}`,
       html: `
         <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
