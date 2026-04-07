@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#252547"/>
+      <stop offset="100%" stop-color="#1a1a2e"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <!-- Subtle accent glow behind title -->
+  <ellipse cx="600" cy="260" rx="300" ry="120" fill="#e2ff3f" opacity="0.04"/>
+  <!-- Title -->
+  <text x="600" y="280" text-anchor="middle" font-family="system-ui, -apple-system, 'Helvetica Neue', sans-serif" font-weight="900" font-size="128" fill="#ffffff" letter-spacing="-4">YES <tspan fill="#e2ff3f">OR</tspan> NO</text>
+  <!-- Subtitle -->
+  <text x="600" y="360" text-anchor="middle" font-family="system-ui, -apple-system, 'Helvetica Neue', sans-serif" font-weight="500" font-size="36" fill="rgba(255,255,255,0.35)" letter-spacing="2">THE PARTY GAME THAT STARTS CONVERSATIONS</text>
+  <!-- Bottom bar -->
+  <rect x="0" y="570" width="1200" height="60" fill="rgba(255,255,255,0.03)"/>
+  <!-- Yes/No indicators -->
+  <circle cx="520" cy="470" r="24" fill="#4ade80" opacity="0.8"/>
+  <text x="520" y="480" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="24" fill="#1a1a2e">Y</text>
+  <circle cx="600" cy="470" r="6" fill="rgba(255,255,255,0.15)"/>
+  <circle cx="680" cy="470" r="24" fill="#f87171" opacity="0.8"/>
+  <text x="680" y="480" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="900" font-size="24" fill="#1a1a2e">N</text>
+</svg>
