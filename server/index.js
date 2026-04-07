@@ -123,14 +123,18 @@ async function sendSubmissionEmail(questionText, submitterName) {
 // ---------- Admin Question CRUD ----------
 app.get('/api/questions', requireAdmin, (req, res) => {
   const status = req.query.status;
+  let questions;
   if (status) {
-    const questions = queries.getByStatus(status);
-    const count = questions.length;
-    return res.json({ questions, count });
+    questions = queries.getByStatus(status);
+  } else {
+    questions = queries.getAllPublished.all();
   }
-  const questions = queries.getAllPublished.all();
-  const count = queries.getPublishedCount.get().count;
-  res.json({ questions, count });
+  // Enrich with deck assignments
+  const enriched = questions.map(q => ({
+    ...q,
+    decks: queries.getDecksForQuestion.all(q.id),
+  }));
+  res.json({ questions: enriched, count: enriched.length });
 });
 
 app.get('/api/questions/counts', requireAdmin, (req, res) => {
@@ -218,9 +222,67 @@ app.post('/api/submit', (req, res) => {
   }
 });
 
+// ---------- Deck CRUD (Admin) ----------
+app.get('/api/decks', (req, res) => {
+  const decks = queries.getAllDecks.all();
+  // Add question counts
+  const result = decks.map(d => ({
+    ...d,
+    questionCount: queries.getDeckQuestionCount.get(d.id).count,
+  }));
+  res.json({ decks: result });
+});
+
+app.post('/api/decks', requireAdmin, (req, res) => {
+  const { name, description } = req.body;
+  if (!name?.trim()) return res.status(400).json({ error: 'Deck name is required' });
+  try {
+    const result = queries.createDeck.run(name.trim(), description || null);
+    const deck = queries.getDeckById.get(result.lastInsertRowid);
+    res.status(201).json(deck);
+  } catch (err) {
+    if (err.message.includes('UNIQUE')) return res.status(409).json({ error: 'Deck name already exists' });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/decks/:id', requireAdmin, (req, res) => {
+  const { name, description } = req.body;
+  if (!name?.trim()) return res.status(400).json({ error: 'Deck name is required' });
+  const result = queries.updateDeck.run(name.trim(), description || null, req.params.id);
+  if (result.changes === 0) return res.status(404).json({ error: 'Deck not found' });
+  const deck = queries.getDeckById.get(req.params.id);
+  res.json(deck);
+});
+
+app.delete('/api/decks/:id', requireAdmin, (req, res) => {
+  const result = queries.deleteDeck.run(req.params.id);
+  if (result.changes === 0) return res.status(404).json({ error: 'Deck not found' });
+  res.json({ success: true });
+});
+
+// Set decks for a question (replaces all assignments)
+app.put('/api/questions/:id/decks', requireAdmin, (req, res) => {
+  const { deckIds } = req.body;
+  if (!Array.isArray(deckIds)) return res.status(400).json({ error: 'deckIds must be an array' });
+  const questionId = req.params.id;
+  queries.clearQuestionDecks.run(questionId);
+  for (const deckId of deckIds) {
+    queries.assignQuestionToDeck.run(questionId, deckId);
+  }
+  const decks = queries.getDecksForQuestion.all(questionId);
+  res.json({ decks });
+});
+
 // ---------- Quick Play (public, no auth) ----------
 app.get('/api/quickplay/questions', (req, res) => {
-  const questions = queries.getRandomQuestions(95);
+  const deckId = req.query.deckId;
+  let questions;
+  if (deckId && deckId !== 'all') {
+    questions = queries.getRandomQuestionsByDeck(parseInt(deckId), 95);
+  } else {
+    questions = queries.getRandomQuestions(95);
+  }
   res.json({ questions: questions.map(q => ({ id: q.id, text: q.text })) });
 });
 
@@ -231,8 +293,8 @@ const socketRooms = new Map();
 io.on('connection', (socket) => {
   console.log(`Connected: ${socket.id}`);
 
-  socket.on('host:create', ({ name } = {}) => {
-    const room = rooms.createRoom(socket.id);
+  socket.on('host:create', ({ name, deckId } = {}) => {
+    const room = rooms.createRoom(socket.id, deckId || null);
     socketRooms.set(socket.id, room.roomCode);
     socket.join(room.roomCode);
 

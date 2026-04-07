@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
 
 export default function HomeScreen({ onQuickPlay, onSubmitQuestion }) {
@@ -6,10 +6,21 @@ export default function HomeScreen({ onQuickPlay, onSubmitQuestion }) {
   const [mode, setMode] = useState(null);
   const [roomCode, setRoomCode] = useState('');
   const [name, setName] = useState('');
+  const [decks, setDecks] = useState([]);
+  const [selectedDeck, setSelectedDeck] = useState('');
+
+  useEffect(() => {
+    if (mode === 'host') {
+      fetch('/api/decks')
+        .then(r => r.json())
+        .then(data => setDecks(data.decks || []))
+        .catch(() => {});
+    }
+  }, [mode]);
 
   const handleHost = (e) => {
     e.preventDefault();
-    if (name.trim()) hostCreate(name.trim());
+    if (name.trim()) hostCreate(name.trim(), selectedDeck ? parseInt(selectedDeck) : null);
   };
 
   const handleJoin = (e) => {
@@ -60,10 +71,23 @@ export default function HomeScreen({ onQuickPlay, onSubmitQuestion }) {
             className="input-field"
             autoFocus
           />
+          <select
+            value={selectedDeck}
+            onChange={e => setSelectedDeck(e.target.value)}
+            className="input-field"
+            style={{ textAlign: 'center', appearance: 'none', WebkitAppearance: 'none' }}
+          >
+            <option value="">All Questions</option>
+            {decks.map(d => (
+              <option key={d.id} value={d.id}>
+                {d.name} ({d.questionCount})
+              </option>
+            ))}
+          </select>
           <button type="submit" disabled={!name.trim()} className="btn-primary">
             Create Room
           </button>
-          <button type="button" onClick={() => { setMode(null); setName(''); }} className="btn-ghost">
+          <button type="button" onClick={() => { setMode(null); setName(''); setSelectedDeck(''); }} className="btn-ghost">
             Back
           </button>
         </form>

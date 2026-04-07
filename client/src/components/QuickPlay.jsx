@@ -1,20 +1,92 @@
 import { useState, useEffect } from 'react';
 
 export default function QuickPlay({ onExit }) {
+  const [decks, setDecks] = useState([]);
+  const [selectedDeck, setSelectedDeck] = useState('');
+  const [deckChosen, setDeckChosen] = useState(false);
   const [questions, setQuestions] = useState([]);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  // Fetch decks on mount
   useEffect(() => {
-    fetch('/api/quickplay/questions')
+    fetch('/api/decks')
       .then(res => res.json())
       .then(data => {
-        setQuestions(data.questions);
+        setDecks(data.decks || []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
 
+  // Fetch questions once deck is chosen
+  useEffect(() => {
+    if (!deckChosen) return;
+    setLoading(true);
+    const url = selectedDeck
+      ? `/api/quickplay/questions?deckId=${selectedDeck}`
+      : '/api/quickplay/questions';
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        setQuestions(data.questions);
+        setIndex(0);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [deckChosen, selectedDeck]);
+
+  // Deck selection screen
+  if (!deckChosen) {
+    if (loading) {
+      return (
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-white/40 text-lg">Loading...</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center px-6 gap-8">
+        <div className="card-enter text-center">
+          <h2 className="text-3xl font-black tracking-tight" style={{ marginBottom: '8px' }}>
+            Choose a Deck
+          </h2>
+          <p className="text-white/40 text-base">
+            Pick which questions to play with
+          </p>
+        </div>
+
+        <div className="card-enter card-enter-delay-1 flex flex-col gap-4 w-full max-w-xs">
+          <select
+            value={selectedDeck}
+            onChange={e => setSelectedDeck(e.target.value)}
+            className="input-field"
+            style={{ textAlign: 'center', appearance: 'none', WebkitAppearance: 'none' }}
+          >
+            <option value="">All Questions</option>
+            {decks.map(d => (
+              <option key={d.id} value={d.id}>
+                {d.name} ({d.questionCount})
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={() => setDeckChosen(true)}
+            className="btn-primary"
+          >
+            Start Game
+          </button>
+          <button onClick={onExit} className="btn-ghost">
+            Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading questions
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -26,9 +98,12 @@ export default function QuickPlay({ onExit }) {
   if (questions.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center" style={{ padding: '48px 24px' }}>
-        <p className="text-white/40 text-lg" style={{ marginBottom: '32px' }}>No questions available.</p>
-        <button onClick={onExit} className="btn-secondary" style={{ maxWidth: '320px' }}>
-          Back
+        <p className="text-white/40 text-lg" style={{ marginBottom: '32px' }}>No questions in this deck.</p>
+        <button onClick={() => setDeckChosen(false)} className="btn-secondary" style={{ maxWidth: '320px', marginBottom: '16px' }}>
+          Choose Another Deck
+        </button>
+        <button onClick={onExit} className="btn-ghost">
+          Back to Home
         </button>
       </div>
     );
@@ -39,7 +114,7 @@ export default function QuickPlay({ onExit }) {
 
   const handleNext = () => {
     if (isLast) {
-      setIndex(0); // loop back
+      setIndex(0);
     } else {
       setIndex(i => i + 1);
     }

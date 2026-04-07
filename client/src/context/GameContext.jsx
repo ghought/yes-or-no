@@ -113,8 +113,8 @@ export function GameProvider({ children }) {
     };
   }, [socket]);
 
-  const hostCreate = useCallback((name) => {
-    socket.emit('host:create', { name });
+  const hostCreate = useCallback((name, deckId = null) => {
+    socket.emit('host:create', { name, deckId });
   }, [socket]);
 
   const playerJoin = useCallback((roomCode, name) => {

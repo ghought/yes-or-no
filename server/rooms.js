@@ -14,11 +14,12 @@ function generateRoomCode() {
   return code;
 }
 
-function createRoom(hostSocketId) {
+function createRoom(hostSocketId, deckId = null) {
   const code = generateRoomCode();
   const room = {
     roomCode: code,
     hostId: hostSocketId,
+    deckId: deckId,
     players: [],
     questions: [],
     currentQuestionIndex: -1,
@@ -74,7 +75,9 @@ function startGame(roomCode) {
   const room = getRoom(roomCode);
   if (!room) return null;
 
-  const allQuestions = queries.getAllQuestions.all();
+  const allQuestions = room.deckId
+    ? queries.getPublishedQuestionsByDeck(room.deckId)
+    : queries.getAllPublished.all();
   // Shuffle
   for (let i = allQuestions.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
