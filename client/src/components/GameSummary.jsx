@@ -14,7 +14,7 @@ export default function GameSummary() {
 
       <div className="card-enter card-enter-delay-1 w-full max-w-sm" style={{ marginBottom: '56px' }}>
         {summary.mostDivisive && (
-          <div className="surface" style={{ padding: '24px 28px' }} style={{ marginBottom: '24px' }}>
+          <div className="surface" style={{ padding: '24px 28px', marginBottom: '24px' }}>
             <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mb-3">Most Divisive</p>
             <p className="text-white font-bold text-lg leading-snug mb-4">
               {summary.mostDivisive.questionText}
