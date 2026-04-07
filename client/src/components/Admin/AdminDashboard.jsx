@@ -130,33 +130,33 @@ export default function AdminDashboard({ onLogout }) {
   };
 
   return (
-    <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-black">Admin Panel</h1>
-        </div>
-        <button onClick={handleLogout} className="text-white/40 hover:text-white text-sm">
+    <div className="flex-1 flex flex-col w-full" style={{ maxWidth: '720px', margin: '0 auto', padding: '24px 24px 40px' }}>
+      {/* Header */}
+      <div className="card-enter flex items-center justify-between" style={{ marginBottom: '28px' }}>
+        <h1 className="text-3xl font-black tracking-tight">Admin</h1>
+        <button onClick={handleLogout} className="btn-ghost">
           Logout
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-white/5 rounded-xl p-1">
+      <div className="card-enter card-enter-delay-1 surface flex" style={{ padding: '5px', marginBottom: '28px' }}>
         {TABS.map(t => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all ${
+            style={{ padding: '12px 8px', borderRadius: '14px', flex: 1 }}
+            className={`text-sm font-bold transition-all ${
               tab === t.key
                 ? 'bg-accent text-dark'
-                : 'text-white/50 hover:text-white/70'
+                : 'text-white/40 hover:text-white/60'
             }`}
           >
             {t.label}
             {t.key !== 'decks' && counts[t.key] > 0 && (
-              <span className={`ml-1.5 text-xs ${
-                tab === t.key ? 'text-dark/50' : 'text-white/30'
-              }`}>
+              <span className={`text-xs font-semibold ${
+                tab === t.key ? 'text-dark/40' : 'text-white/20'
+              }`} style={{ marginLeft: '6px' }}>
                 {counts[t.key]}
               </span>
             )}
@@ -166,27 +166,31 @@ export default function AdminDashboard({ onLogout }) {
 
       {/* Decks tab */}
       {tab === 'decks' && (
-        <DeckManager onLogout={onLogout} />
+        <div className="card-enter">
+          <DeckManager onLogout={onLogout} />
+        </div>
       )}
 
       {/* Question tabs */}
       {tab !== 'decks' && (
-        <>
+        <div className="card-enter card-enter-delay-2 flex-1 flex flex-col">
           {/* Add question (only on published tab) */}
           {tab === 'published' && (
-            <>
-              <form onSubmit={addQuestion} className="flex gap-2 mb-4">
+            <div style={{ marginBottom: '24px' }}>
+              <form onSubmit={addQuestion} className="flex gap-3" style={{ marginBottom: '12px' }}>
                 <input
                   type="text"
                   placeholder="Add a question..."
                   value={newQuestion}
                   onChange={e => setNewQuestion(e.target.value)}
-                  className="flex-1 py-3 px-4 bg-white/10 text-white rounded-xl placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="input-field"
+                  style={{ textAlign: 'left', fontSize: '0.95rem', padding: '14px 18px' }}
                 />
                 <button
                   type="submit"
                   disabled={!newQuestion.trim()}
-                  className="px-6 py-3 bg-accent text-dark font-bold rounded-xl hover:bg-accent-hover transition-colors disabled:opacity-30"
+                  style={{ padding: '14px 24px', borderRadius: '16px', whiteSpace: 'nowrap' }}
+                  className="bg-accent text-dark font-bold rounded-2xl hover:bg-accent-hover transition-colors disabled:opacity-30 shrink-0"
                 >
                   Add
                 </button>
@@ -194,47 +198,51 @@ export default function AdminDashboard({ onLogout }) {
 
               <button
                 onClick={() => setShowBulk(!showBulk)}
-                className="text-accent/70 hover:text-accent text-sm mb-4 text-left"
+                className="text-accent/60 hover:text-accent text-sm font-medium transition-colors"
               >
-                {showBulk ? 'Hide bulk import' : 'Bulk import (one per line)'}
+                {showBulk ? 'Hide bulk import' : '+ Bulk import'}
               </button>
 
               {showBulk && (
-                <div className="mb-4 space-y-2">
+                <div style={{ marginTop: '12px' }}>
                   <textarea
                     value={bulkText}
                     onChange={e => setBulkText(e.target.value)}
                     placeholder="Paste questions here, one per line..."
-                    rows={6}
-                    className="w-full py-3 px-4 bg-white/10 text-white rounded-xl placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+                    rows={5}
+                    className="w-full text-white rounded-2xl placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+                    style={{ padding: '16px 18px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', fontSize: '0.95rem' }}
                   />
                   <button
                     onClick={bulkImport}
                     disabled={!bulkText.trim()}
-                    className="px-6 py-2 bg-accent text-dark font-bold rounded-xl hover:bg-accent-hover transition-colors disabled:opacity-30"
+                    style={{ marginTop: '10px', padding: '12px 24px', borderRadius: '14px' }}
+                    className="bg-accent text-dark font-bold hover:bg-accent-hover transition-colors disabled:opacity-30"
                   >
                     Import
                   </button>
                 </div>
               )}
-            </>
+            </div>
           )}
 
           {/* Pending review instructions */}
           {tab === 'draft' && questions.length > 0 && (
-            <p className="text-white/30 text-xs mb-4">
+            <p className="text-white/30 text-xs font-medium" style={{ marginBottom: '16px' }}>
               User-submitted questions awaiting review. Approve to add to the game or reject.
             </p>
           )}
 
           {/* Question list */}
-          <div className="space-y-2 overflow-y-auto flex-1">
+          <div className="flex-1 overflow-y-auto" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {loading ? (
-              <p className="text-white/30 text-center py-8">Loading...</p>
+              <p className="text-white/30 text-center pulse-subtle" style={{ padding: '48px 0' }}>Loading...</p>
             ) : questions.length === 0 ? (
-              <p className="text-white/20 text-center py-8">
-                {tab === 'draft' ? 'No pending submissions' : tab === 'rejected' ? 'No rejected questions' : 'No published questions'}
-              </p>
+              <div className="text-center" style={{ padding: '56px 0' }}>
+                <p className="text-white/20 text-base">
+                  {tab === 'draft' ? 'No pending submissions' : tab === 'rejected' ? 'No rejected questions' : 'No published questions'}
+                </p>
+              </div>
             ) : (
               questions.map(q => (
                 <QuestionEditor
@@ -251,7 +259,7 @@ export default function AdminDashboard({ onLogout }) {
               ))
             )}
           </div>
-        </>
+        </div>
       )}
     </div>
   );

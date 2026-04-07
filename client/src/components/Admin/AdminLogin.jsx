@@ -28,22 +28,36 @@ export default function AdminLogin({ onLogin }) {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-6">
-      <h1 className="text-3xl font-black mb-8">Admin Login</h1>
-      <form onSubmit={handleSubmit} className="w-full max-w-xs space-y-4">
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          className="w-full py-4 px-6 bg-white/10 text-white text-center text-xl rounded-2xl placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-accent"
-          autoFocus
-        />
-        {error && <p className="text-no text-center text-sm">{error}</p>}
+    <div className="flex-1 flex flex-col items-center justify-center" style={{ padding: '48px 24px' }}>
+      <div className="card-enter text-center" style={{ marginBottom: '40px' }}>
+        <h1 className="text-4xl font-black tracking-tight" style={{ marginBottom: '8px' }}>
+          Admin
+        </h1>
+        <p className="text-white/30 text-base">Enter your password to continue</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="card-enter card-enter-delay-1 w-full" style={{ maxWidth: '360px' }}>
+        <div style={{ marginBottom: '16px' }}>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            className="input-field"
+            autoFocus
+          />
+        </div>
+
+        {error && (
+          <p className="text-no text-center text-sm font-semibold" style={{ marginBottom: '16px' }}>
+            {error}
+          </p>
+        )}
+
         <button
           type="submit"
           disabled={loading || !password}
-          className="w-full py-4 bg-accent text-dark font-bold text-xl rounded-2xl hover:bg-accent-hover transition-colors disabled:opacity-30"
+          className="btn-primary text-xl"
         >
           {loading ? 'Checking...' : 'Login'}
         </button>
