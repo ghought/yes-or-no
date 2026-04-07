@@ -32,14 +32,16 @@ export default function VoteButtons() {
       <div className="flex gap-5" style={{ marginBottom: '32px' }}>
         <button
           onClick={() => vote('yes')}
-          className="vote-btn flex-1 py-9 bg-yes/10 hover:bg-yes/20 border border-yes/25 hover:border-yes/40 rounded-[20px] flex flex-col items-center gap-3 shadow-[0_4px_20px_var(--color-yes-glow)] hover:shadow-[0_8px_30px_var(--color-yes-glow)]"
+          className="vote-btn flex-1 bg-yes/10 hover:bg-yes/20 border border-yes/25 hover:border-yes/40 rounded-[20px] flex flex-col items-center gap-3 shadow-[0_4px_20px_var(--color-yes-glow)] hover:shadow-[0_8px_30px_var(--color-yes-glow)]"
+          style={{ padding: '28px 16px 24px' }}
         >
           <span className="text-5xl">👍</span>
           <span className="text-yes font-extrabold text-xl tracking-wide">YES</span>
         </button>
         <button
           onClick={() => vote('no')}
-          className="vote-btn flex-1 py-9 bg-no/10 hover:bg-no/20 border border-no/25 hover:border-no/40 rounded-[20px] flex flex-col items-center gap-3 shadow-[0_4px_20px_var(--color-no-glow)] hover:shadow-[0_8px_30px_var(--color-no-glow)]"
+          className="vote-btn flex-1 bg-no/10 hover:bg-no/20 border border-no/25 hover:border-no/40 rounded-[20px] flex flex-col items-center gap-3 shadow-[0_4px_20px_var(--color-no-glow)] hover:shadow-[0_8px_30px_var(--color-no-glow)]"
+          style={{ padding: '28px 16px 24px' }}
         >
           <span className="text-5xl">👎</span>
           <span className="text-no font-extrabold text-xl tracking-wide">NO</span>

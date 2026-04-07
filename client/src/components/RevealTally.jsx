@@ -40,15 +40,12 @@ export default function RevealTally() {
 
       {/* Host controls */}
       {isHost && (
-        <div className="flex gap-4">
-          <button onClick={nextQuestion} className="btn-primary flex-1">
+        <div className="text-center">
+          <button onClick={nextQuestion} className="btn-primary" style={{ marginBottom: '16px' }}>
             Next Question
           </button>
-          <button
-            onClick={endGame}
-            className="px-8 py-[18px] bg-white/[0.06] text-white/40 font-semibold rounded-2xl border border-white/[0.06] hover:bg-white/[0.1] hover:text-white/60 transition-all active:scale-97 shrink-0"
-          >
-            End
+          <button onClick={endGame} className="btn-ghost">
+            End Game
           </button>
         </div>
       )}
