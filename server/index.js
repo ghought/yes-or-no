@@ -77,12 +77,18 @@ app.get('/api/admin/check', requireAdmin, (req, res) => {
 function getMailTransporter() {
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
-  if (!user || !pass) return null;
+  if (!user || !pass) {
+    console.log('SMTP credentials missing:', { user: !!user, pass: !!pass });
+    return null;
+  }
+  // Strip spaces from app passwords (Gmail shows them as "xxxx xxxx xxxx xxxx")
+  const cleanPass = pass.replace(/\s/g, '');
+  console.log(`SMTP configured: ${user} via ${process.env.SMTP_HOST || 'smtp.gmail.com'}`);
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || '587'),
     secure: false,
-    auth: { user, pass },
+    auth: { user, pass: cleanPass },
   });
 }
 
@@ -116,7 +122,7 @@ async function sendSubmissionEmail(questionText, submitterName) {
     });
     console.log('Submission notification email sent');
   } catch (err) {
-    console.error('Failed to send email:', err.message);
+    console.error('Failed to send email:', err.message, err.code || '', err.responseCode || '');
   }
 }
 
