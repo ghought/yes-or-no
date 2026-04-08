@@ -93,7 +93,7 @@ export default function SubmitQuestion({ onBack }) {
             Your Question
           </label>
           <textarea
-            placeholder="Would you rather..."
+            placeholder="Remember, it has to be a YES or NO question!"
             value={question}
             onChange={e => setQuestion(e.target.value)}
             maxLength={200}
