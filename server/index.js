@@ -22,6 +22,13 @@ const io = new Server(server, {
     origin: process.env.NODE_ENV === 'production' ? false : ['http://localhost:5173'],
     credentials: true,
   },
+  // Keep connections alive longer — tolerate mobile sleep / backgrounded tabs
+  pingInterval: 25000,
+  pingTimeout: 60000,
+  connectionStateRecovery: {
+    maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
+    skipMiddlewares: true,
+  },
 });
 
 app.use(cors({
@@ -294,9 +301,14 @@ app.get('/api/quickplay/questions', (req, res) => {
   const deckId = req.query.deckId;
   let questions;
   if (deckId && deckId !== 'all') {
-    questions = queries.getRandomQuestionsByDeck(parseInt(deckId), 95);
+    questions = queries.getPublishedQuestionsByDeck(parseInt(deckId));
   } else {
-    questions = queries.getRandomQuestions(95);
+    questions = queries.getAllPublished.all();
+    // Shuffle
+    for (let i = questions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [questions[i], questions[j]] = [questions[j], questions[i]];
+    }
   }
   res.json({ questions: questions.map(q => ({ id: q.id, text: q.text })) });
 });
@@ -368,6 +380,65 @@ io.on('connection', (socket) => {
 
     // Tell the joining player whether they are the host
     socket.emit('room:role', { isHost: room.hostId === socket.id });
+  });
+
+  // Rejoin an existing room after disconnect/reconnect.
+  // Preserves host status and (if game in progress) restores the player's game state.
+  socket.on('player:rejoin', ({ roomCode, name }) => {
+    if (!roomCode || !name?.trim()) return;
+    const code = roomCode.toUpperCase();
+    const room = rooms.getRoom(code);
+    if (!room) {
+      return socket.emit('room:rejoinFailed', { reason: 'not_found' });
+    }
+    const existing = room.players.find(p => p.name.toLowerCase() === name.trim().toLowerCase());
+    if (!existing) {
+      return socket.emit('room:rejoinFailed', { reason: 'not_in_room' });
+    }
+
+    // Update socket id mappings
+    rooms.addPlayer(code, { socketId: socket.id, name: name.trim() });
+    socketRooms.set(socket.id, code);
+    socket.join(code);
+
+    // Tell everyone about the updated player list
+    const players = rooms.getConnectedPlayers(code).map(p => ({ id: p.id, name: p.name }));
+    io.to(code).emit('room:playerJoined', { players });
+
+    // Tell rejoining player their role
+    socket.emit('room:role', { isHost: room.hostId === socket.id });
+    socket.emit('room:rejoined', { roomCode: code });
+
+    // Restore game state for this player based on current room state
+    if (room.state === 'voting' && room.currentQuestionIndex >= 0) {
+      const question = room.questions[room.currentQuestionIndex];
+      socket.emit('game:question', {
+        questionText: question.text,
+        questionNumber: room.currentQuestionIndex + 1,
+        totalQuestions: room.questions.length,
+      });
+      const connectedCount = rooms.getConnectedPlayers(code).length;
+      socket.emit('game:voteProgress', {
+        votedCount: room.votes.size,
+        totalPlayers: connectedCount,
+      });
+      // If they already voted, let them know
+      if (room.votes.has(socket.id)) {
+        socket.emit('game:alreadyVoted');
+      }
+    } else if (room.state === 'reveal' && room.currentQuestionIndex >= 0) {
+      const question = room.questions[room.currentQuestionIndex];
+      socket.emit('game:question', {
+        questionText: question.text,
+        questionNumber: room.currentQuestionIndex + 1,
+        totalQuestions: room.questions.length,
+      });
+      const tally = rooms.getVoteTally(code);
+      socket.emit('game:reveal', tally);
+    } else if (room.state === 'ended') {
+      const summary = rooms.getGameSummary(code);
+      socket.emit('game:ended', summary);
+    }
   });
 
   socket.on('host:startGame', () => {
@@ -508,17 +579,9 @@ io.on('connection', (socket) => {
         rooms.removePlayer(roomCode, socket.id);
         const players = rooms.getConnectedPlayers(roomCode).map(p => ({ id: p.id, name: p.name }));
         io.to(roomCode).emit('room:playerLeft', { players });
-
-        // If host disconnected, promote someone or clean up
-        if (room.hostId === socket.id) {
-          const connected = rooms.getConnectedPlayers(roomCode);
-          if (connected.length > 0) {
-            room.hostId = connected[0].socketId;
-            io.to(connected[0].socketId).emit('room:role', { isHost: true });
-          } else {
-            rooms.deleteRoom(roomCode);
-          }
-        }
+        // Note: we don't immediately promote/clean up on host disconnect.
+        // Host has the grace period to reconnect via player:rejoin.
+        // If the room is truly abandoned, the interval cleanup in rooms.js handles it.
       }
       socketRooms.delete(socket.id);
     }

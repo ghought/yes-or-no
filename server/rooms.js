@@ -46,8 +46,20 @@ function addPlayer(roomCode, player) {
 
   const existing = room.players.find(p => p.name.toLowerCase() === player.name.toLowerCase());
   if (existing) {
+    const oldSocketId = existing.socketId;
     existing.socketId = player.socketId;
+    existing.id = player.socketId;
     existing.connected = true;
+    // If the rejoining player was the host, update hostId to new socket id
+    if (room.hostId === oldSocketId) {
+      room.hostId = player.socketId;
+    }
+    // Migrate their vote to the new socket id (if they voted before disconnecting)
+    if (room.votes && room.votes.has(oldSocketId)) {
+      const vote = room.votes.get(oldSocketId);
+      room.votes.delete(oldSocketId);
+      room.votes.set(player.socketId, vote);
+    }
     return room;
   }
 
@@ -181,15 +193,25 @@ function getConnectedPlayers(roomCode) {
   return room.players.filter(p => p.connected);
 }
 
-// Clean up empty rooms periodically
+// Track when all players have disconnected so we can expire abandoned rooms
+// without deleting rooms where someone is briefly offline (mobile sleep, etc.)
 setInterval(() => {
+  const now = Date.now();
   for (const [code, room] of rooms) {
     const connected = room.players.filter(p => p.connected);
-    if (connected.length === 0 && Date.now() - (room.createdAt || 0) > 30 * 60 * 1000) {
-      rooms.delete(code);
+    if (connected.length === 0) {
+      if (!room.abandonedAt) {
+        room.abandonedAt = now;
+      } else if (now - room.abandonedAt > 10 * 60 * 1000) {
+        // Room has had zero connected players for 10+ minutes — clean up
+        rooms.delete(code);
+      }
+    } else if (room.abandonedAt) {
+      // Someone reconnected — clear the timer
+      delete room.abandonedAt;
     }
   }
-}, 5 * 60 * 1000);
+}, 60 * 1000);
 
 module.exports = {
   createRoom,

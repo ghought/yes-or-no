@@ -10,6 +10,12 @@ export function useSocket() {
     socketRef.current = io(SOCKET_URL, {
       autoConnect: false,
       transports: ['websocket', 'polling'],
+      // Keep retrying forever so users don't get "stuck" after brief network blips
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 500,
+      reconnectionDelayMax: 5000,
+      randomizationFactor: 0.5,
     });
   }
 

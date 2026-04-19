@@ -1,7 +1,9 @@
-import { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
+import { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
 import { useSocket } from '../hooks/useSocket';
 
 const GameContext = createContext(null);
+
+const SESSION_KEY = 'yn_session';
 
 const initialState = {
   screen: 'home', // home | lobby | voting | reveal | ended
@@ -59,13 +61,72 @@ function reducer(state, action) {
   }
 }
 
+function loadSession() {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed.roomCode || !parsed.playerName) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveSession(data) {
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
+  } catch {}
+}
+
+function clearSession() {
+  try {
+    sessionStorage.removeItem(SESSION_KEY);
+  } catch {}
+}
+
 export function GameProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const socket = useSocket();
+  // Keep current session info in a ref so the reconnect handler always has fresh values
+  const sessionRef = useRef({ roomCode: null, playerName: null });
+
+  // Persist roomCode + playerName as they change
+  useEffect(() => {
+    if (state.roomCode && state.playerName) {
+      sessionRef.current = { roomCode: state.roomCode, playerName: state.playerName };
+      saveSession(sessionRef.current);
+    } else if (state.screen === 'home') {
+      sessionRef.current = { roomCode: null, playerName: null };
+      clearSession();
+    }
+  }, [state.roomCode, state.playerName, state.screen]);
 
   useEffect(() => {
+    // On (re)connect, if we have an active session, ask the server to rejoin us.
+    const handleConnect = () => {
+      const { roomCode, playerName } = sessionRef.current;
+      if (roomCode && playerName) {
+        socket.emit('player:rejoin', { roomCode, name: playerName });
+      }
+    };
+
+    socket.on('connect', handleConnect);
+
     socket.on('room:created', ({ roomCode }) => {
       dispatch({ type: 'SET_HOST', roomCode });
+    });
+
+    socket.on('room:rejoined', () => {
+      // Server confirmed rejoin; state will follow via game:* events. Clear any stale error.
+      dispatch({ type: 'CLEAR_ERROR' });
+    });
+
+    socket.on('room:rejoinFailed', () => {
+      // Room no longer exists — reset to home so user isn't stuck
+      clearSession();
+      sessionRef.current = { roomCode: null, playerName: null };
+      dispatch({ type: 'RESET' });
     });
 
     socket.on('room:playerJoined', ({ players }) => {
@@ -88,6 +149,10 @@ export function GameProvider({ children }) {
       dispatch({ type: 'SET_VOTE_PROGRESS', votedCount, totalPlayers });
     });
 
+    socket.on('game:alreadyVoted', () => {
+      dispatch({ type: 'SET_VOTED' });
+    });
+
     socket.on('game:reveal', (tally) => {
       dispatch({ type: 'SET_REVEAL', tally });
     });
@@ -100,13 +165,25 @@ export function GameProvider({ children }) {
       dispatch({ type: 'SET_ERROR', message });
     });
 
+    // On first mount, restore any stored session so rejoin will fire on connect
+    const stored = loadSession();
+    if (stored) {
+      sessionRef.current = stored;
+      // Optimistically put user back in the lobby; server state will overwrite once rejoined
+      dispatch({ type: 'SET_JOINED', roomCode: stored.roomCode, playerName: stored.playerName });
+    }
+
     return () => {
+      socket.off('connect', handleConnect);
       socket.off('room:created');
+      socket.off('room:rejoined');
+      socket.off('room:rejoinFailed');
       socket.off('room:playerJoined');
       socket.off('room:playerLeft');
       socket.off('room:role');
       socket.off('game:question');
       socket.off('game:voteProgress');
+      socket.off('game:alreadyVoted');
       socket.off('game:reveal');
       socket.off('game:ended');
       socket.off('error');
@@ -114,12 +191,16 @@ export function GameProvider({ children }) {
   }, [socket]);
 
   const hostCreate = useCallback((name, deckId = null) => {
+    sessionRef.current = { roomCode: null, playerName: name };
     socket.emit('host:create', { name, deckId });
   }, [socket]);
 
   const playerJoin = useCallback((roomCode, name) => {
-    socket.emit('player:join', { roomCode, name });
-    dispatch({ type: 'SET_JOINED', roomCode: roomCode.toUpperCase(), playerName: name });
+    const code = roomCode.toUpperCase();
+    sessionRef.current = { roomCode: code, playerName: name };
+    saveSession(sessionRef.current);
+    socket.emit('player:join', { roomCode: code, name });
+    dispatch({ type: 'SET_JOINED', roomCode: code, playerName: name });
   }, [socket]);
 
   const startGame = useCallback(() => {
@@ -148,6 +229,8 @@ export function GameProvider({ children }) {
   }, [socket]);
 
   const reset = useCallback(() => {
+    clearSession();
+    sessionRef.current = { roomCode: null, playerName: null };
     dispatch({ type: 'RESET' });
   }, []);
 
