@@ -325,6 +325,34 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
+// Middleware runs during the handshake — BEFORE any buffered emits (like a
+// vote that was queued while the phone was asleep) are processed. If the
+// client advertised an active session via socket.handshake.auth, re-bind the
+// socket to its existing player so those buffered emits land in the right room.
+io.use((socket, next) => {
+  try {
+    const { roomCode, playerName } = socket.handshake.auth || {};
+    if (roomCode && playerName) {
+      const code = String(roomCode).toUpperCase();
+      const room = rooms.getRoom(code);
+      if (room) {
+        const existing = room.players.find(
+          p => p.name.toLowerCase() === String(playerName).trim().toLowerCase()
+        );
+        if (existing) {
+          // Migrate their entry to this new socket.id.
+          rooms.addPlayer(code, { socketId: socket.id, name: String(playerName).trim() });
+          socketRooms.set(socket.id, code);
+          socket.join(code);
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Handshake auth error:', err.message);
+  }
+  next();
+});
+
 io.on('connection', (socket) => {
   console.log(`Connected: ${socket.id}${socket.recovered ? ' (recovered)' : ''}`);
 
@@ -491,15 +519,52 @@ io.on('connection', (socket) => {
   });
 
   socket.on('player:vote', ({ answer }) => {
-    const roomCode = socketRooms.get(socket.id);
+    // Fallback rebind: if the middleware missed it or this is a stale vote
+    // from before the handshake finished, try to rebind via auth.
+    let roomCode = socketRooms.get(socket.id);
+    if (!roomCode) {
+      const { roomCode: authRoom, playerName } = socket.handshake.auth || {};
+      if (authRoom && playerName) {
+        const code = String(authRoom).toUpperCase();
+        const room = rooms.getRoom(code);
+        if (room?.players.find(p => p.name.toLowerCase() === String(playerName).toLowerCase())) {
+          rooms.addPlayer(code, { socketId: socket.id, name: String(playerName).trim() });
+          socketRooms.set(socket.id, code);
+          socket.join(code);
+          roomCode = code;
+        }
+      }
+    }
+
     const room = rooms.getRoom(roomCode);
-    if (!room || room.state !== 'voting') {
-      return socket.emit('error', { message: 'Voting is not active' });
+    if (!room) {
+      // No room at all — ask the client to go back home cleanly
+      return socket.emit('room:rejoinFailed', { reason: 'not_found' });
+    }
+    if (room.state !== 'voting') {
+      // Game has moved on while this player was disconnected.
+      // Silently resync their view instead of showing a scary error.
+      if (room.currentQuestionIndex >= 0) {
+        const question = room.questions[room.currentQuestionIndex];
+        socket.emit('game:question', {
+          questionText: question.text,
+          questionNumber: room.currentQuestionIndex + 1,
+          totalQuestions: room.questions.length,
+        });
+        if (room.state === 'reveal') {
+          socket.emit('game:reveal', rooms.getVoteTally(roomCode));
+        }
+      }
+      if (room.state === 'ended') {
+        socket.emit('game:ended', rooms.getGameSummary(roomCode));
+      }
+      return;
     }
 
     // Prevent double voting
     if (room.votes.has(socket.id)) {
-      return socket.emit('error', { message: 'You already voted' });
+      // Silently ignore — client is already showing "voted" state
+      return socket.emit('game:alreadyVoted');
     }
 
     rooms.castVote(roomCode, socket.id, answer);
