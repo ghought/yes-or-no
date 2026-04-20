@@ -314,11 +314,35 @@ app.get('/api/quickplay/questions', (req, res) => {
 });
 
 // ---------- Socket.IO Game Logic ----------
-// Track which room each socket is in
+// Track which room each socket is in. Entries are retained across
+// disconnects to support connectionStateRecovery, and are swept here
+// periodically for sockets whose rooms no longer exist.
 const socketRooms = new Map();
 
+setInterval(() => {
+  for (const [sid, code] of socketRooms) {
+    if (!rooms.getRoom(code)) socketRooms.delete(sid);
+  }
+}, 5 * 60 * 1000);
+
 io.on('connection', (socket) => {
-  console.log(`Connected: ${socket.id}`);
+  console.log(`Connected: ${socket.id}${socket.recovered ? ' (recovered)' : ''}`);
+
+  // Connection state recovery kicked in — socket.id is preserved, but we may
+  // have marked the player disconnected and broadcast a playerLeft event.
+  // Re-activate them and re-broadcast the player list so everyone is in sync.
+  if (socket.recovered) {
+    const roomCode = socketRooms.get(socket.id);
+    const room = roomCode && rooms.getRoom(roomCode);
+    if (room) {
+      const player = room.players.find(p => p.socketId === socket.id);
+      if (player && !player.connected) {
+        player.connected = true;
+        const players = rooms.getConnectedPlayers(roomCode).map(p => ({ id: p.id, name: p.name }));
+        io.to(roomCode).emit('room:playerJoined', { players });
+      }
+    }
+  }
 
   socket.on('host:create', ({ name, deckId } = {}) => {
     const room = rooms.createRoom(socket.id, deckId || null);
@@ -580,10 +604,12 @@ io.on('connection', (socket) => {
         const players = rooms.getConnectedPlayers(roomCode).map(p => ({ id: p.id, name: p.name }));
         io.to(roomCode).emit('room:playerLeft', { players });
         // Note: we don't immediately promote/clean up on host disconnect.
-        // Host has the grace period to reconnect via player:rejoin.
+        // Host has the grace period to reconnect via connectionStateRecovery
+        // (same socket.id) or player:rejoin (new socket.id).
         // If the room is truly abandoned, the interval cleanup in rooms.js handles it.
       }
-      socketRooms.delete(socket.id);
+      // Keep socketRooms[socket.id] so connectionStateRecovery can find the room.
+      // Stale entries are swept when rooms are deleted (see below).
     }
   });
 });
